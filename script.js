@@ -111,7 +111,7 @@ function setupRulesAdmin(){
 loadPublishedRules();
 setupRulesAdmin();
 // Navegação por link direto/refresh
-#("#","");if(initial&&document.getElementById("page-"+initial))showPage(initial);
+const initial=location.hash.replace("#","");if(initial&&document.getElementById("page-"+initial))showPage(initial);
 // Modal informativo de documentos
 const modal=document.getElementById("modal");
 document.querySelectorAll("[data-open]").forEach(btn=>btn.addEventListener("click",()=>{document.getElementById("modalTitle").textContent=btn.dataset.open;modal.classList.add("show");}));

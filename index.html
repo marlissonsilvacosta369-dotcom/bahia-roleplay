@@ -101,6 +101,7 @@
 
       <section class="page subpage" id="page-regulamentos">
         <div class="page-heading"><span class="eyebrow">CENTRAL DE DOCUMENTOS</span><h1>Regulamentos</h1><p>Conheça as diretrizes que mantêm nossa cidade organizada e a experiência de roleplay respeitosa.</p></div>
+        <div id="publishedRules" class="doc-grid"></div>
         <div class="doc-grid">
           <article class="doc-card" data-search="diretrizes essenciais convivência respeito"><span class="doc-icon">▤</span><h3>Diretrizes Essenciais</h3><p>Princípios de convivência, respeito e qualidade de interpretação.</p><button class="text-button" data-open="Diretrizes Essenciais">Consultar documento ↗</button></article>
           <article class="doc-card" data-search="regras básicas roleplay cidade"><span class="doc-icon">▤</span><h3>Regras Básicas</h3><p>Regras gerais para todos os cidadãos e situações na cidade.</p><button class="text-button" data-open="Regras Básicas">Consultar documento ↗</button></article>
@@ -173,7 +174,16 @@
         <div class="notice">A liberação exige login Discord. Informe o ID de usuário que aparece na primeira tentativa de conexão ao servidor e seu nome RP.</div>
         <form class="portal-form" id="idForm"><label>ID inicial do jogador<input name="id" required inputmode="numeric" pattern="[0-9]+" placeholder="ID que aparece ao entrar pela primeira vez"></label><label>Observação (opcional)<textarea name="descricao" rows="3" placeholder="Informação adicional"></textarea></label><button class="button button-blue" type="submit">Solicitar liberação</button></form><div class="saved-list" id="idsSaved"></div>
       </section>
-      <section class="page subpage" id="page-admin"><div class="page-heading"><span class="eyebrow">STAFF • ACESSO RESTRITO</span><h1>Painel administrativo</h1><p>Gerencie denúncias, revisões e liberações de ID. Esta área só aparece para Discord IDs autorizados no backend.</p></div><div id="adminContent"><div class="notice">Faça login como administrador para carregar os registros.</div></div></section>
+      <section class="page subpage" id="page-admin"><div class="page-heading"><span class="eyebrow">STAFF • ACESSO RESTRITO</span><h1>Painel administrativo</h1><p>Gerencie denúncias, revisões e liberações de ID. Esta área só aparece para Discord IDs autorizados no backend.</p></div><div id="adminContent"><div class="notice">Faça login como administrador para carregar os registros.</div></div>
+        <div class="page-heading" style="margin-top:34px"><span class="eyebrow">CONTEÚDO DO SITE</span><h2>Editar regras da cidade</h2><p>Digite a senha administrativa para liberar a edição. O conteúdo salvo aparecerá na seção Regulamentos.</p></div>
+        <form class="portal-form" id="rulesAdminForm">
+          <label>Senha de edição<input name="password" type="password" required autocomplete="current-password" placeholder="Senha administrativa"></label>
+          <label>Título da regra<input name="title" required maxlength="100" placeholder="Ex.: Regras Gerais"></label>
+          <label>Conteúdo<textarea name="content" required rows="9" maxlength="20000" placeholder="Escreva aqui as regras oficiais da cidade..."></textarea></label>
+          <button class="button button-blue" type="submit">Salvar regra</button>
+          <p id="rulesAdminNotice" class="notice" style="margin:0"></p>
+        </form>
+        <div id="rulesAdminList" class="saved-list"></div></section>
       <section class="page subpage" id="page-minha-area">
         <div class="page-heading"><span class="eyebrow">PORTAL DO CIDADÃO</span><h1>Minha área</h1><p>Gerencie seu perfil, acompanhe solicitações e consulte o histórico vinculado à sua conta Discord.</p><button class="button button-blue" id="loginArea" type="button">♙ Entrar com Discord</button></div>
         <div class="notice" id="rpProfileNotice">Entre com Discord para acessar seu perfil e registrar seu nome RP.</div>

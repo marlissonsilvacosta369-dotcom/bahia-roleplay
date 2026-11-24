@@ -1,5 +1,61 @@
 const {getSession,json,readBody,supabase}=require('./_shared');
-const firstPattern=/^[\p{L}]{2,24}$/u;
-const surnames=new Set(('Silva Santos Souza Oliveira Pereira Costa Rodrigues Almeida Nascimento Lima Araújo Fernandes Carvalho Gomes Martins Rocha Ribeiro Alves Monteiro Mendes Barbosa Cardoso Soares Teixeira Moreira Vieira Dias Correia Mendes Ferreira Freitas Batista Castro Campos Ramos Reis Machado Moura Cruz Gonçalves Santana Pinto Melo Barbosa Cunha Marques Azevedo Lopes Tavares Cavalcanti Andrade Torres Fonseca Moraes Dantas Brito Farias Barros Pires Miranda Neves Queiroz Rezende Duarte Peixoto Siqueira Macedo Xavier Abreu Amaral Paiva Guimarães Viana Leal Sales Bittencourt Nogueira Cordeiro Rangel Gama Lacerda Assis Mota Motta Falcão Chagas Coelho Pacheco Matos Maia Freire Antunes Braga Figueiredo Bernardes Borges Camargo Franco Cavalcante Caldas Vasconcelos Correia Afonso Aguiar Brandão Bueno Cabral Diniz Lins Sampaio Pimenta Furtado Neri Nunes Rabelo Sarmento Teles Bastos Brito Campos Goulart Vilela Dourado Rezende').toLocaleLowerCase('pt-BR').split(' '));
-exports.handler=async(event)=>{const u=getSession(event);if(!u)return json(401,{error:'Faça login com Discord'});if(event.httpMethod==='GET'){const r=await supabase('portal_profiles?discord_id=eq.'+encodeURIComponent(u.sub)+'&select=first_name,last_name,rp_name&limit=1');if(!r.ok)return json(500,{error:'Falha ao consultar perfil'});const rows=await r.json();return json(200,{profile:rows[0]||null});}
-if(event.httpMethod!=='POST')return json(405,{error:'Método não permitido'});const b=await readBody(event);const first=String(b.firstName||'').trim(),last=String(b.lastName||'').trim();if(!firstPattern.test(first)||!firstPattern.test(last)||first.includes(' ')||last.includes(' '))return json(400,{error:'Informe apenas um nome e um sobrenome, sem espaços extras.'});if(surnames.has(first.toLocaleLowerCase('pt-BR')))return json(400,{error:'O primeiro campo deve ser um nome, não outro sobrenome.'});if(!surnames.has(last.toLocaleLowerCase('pt-BR')))return json(400,{error:'Sobrenome não reconhecido. Use um sobrenome válido da lista de nomes RP ou procure a staff.'});const rpName=first+' '+last;const check=await supabase('portal_profiles?rp_name_lower=eq.'+encodeURIComponent(rpName.toLocaleLowerCase('pt-BR'))+'&select=discord_id&limit=1');if(!check.ok)return json(500,{error:'Não foi possível verificar se o nome está disponível.'});if((await check.json()).length)return json(409,{error:'Este nome RP já está em uso. Escolha outro nome e sobrenome.'});const save=await supabase('portal_profiles','POST',{discord_id:u.sub,discord_username:u.username,first_name:first,last_name:last,rp_name:rpName,rp_name_lower:rpName.toLocaleLowerCase('pt-BR')});if(!save.ok){const err=await save.text();if(save.status===409||err.includes('23505'))return json(409,{error:'Este nome RP ou conta já está registrada.'});return json(500,{error:'Erro ao salvar nome RP.'});}return json(201,{ok:true,profile:{first_name:first,last_name:last,rp_name:rpName}});};
+
+const validName=/^[\\p{L}]+(?:[ '-][\\p{L}]+)*$/u;
+function cleanName(value){
+  return String(value||'').normalize('NFC').trim().replace(/\\s+/g,' ');
+}
+
+exports.handler=async(event)=>{
+  const user=getSession(event);
+  if(!user) return json(401,{error:'Faça login com Discord para cadastrar seu nome RP.'});
+
+  if(event.httpMethod==='GET'){
+    const response=await supabase('portal_profiles?discord_id=eq.'+encodeURIComponent(user.sub)+'&select=first_name,last_name,rp_name&limit=1');
+    if(!response.ok) return json(500,{error:'Falha ao consultar seu cadastro RP. Confira se a tabela portal_profiles existe no Supabase.'});
+    const rows=await response.json();
+    return json(200,{profile:rows[0]||null});
+  }
+
+  if(event.httpMethod!=='POST') return json(405,{error:'Método não permitido'});
+
+  const body=await readBody(event);
+  const first=cleanName(body.firstName);
+  const last=cleanName(body.lastName);
+
+  if(first.length<2||first.length>32||!validName.test(first)){
+    return json(400,{error:'Digite um primeiro nome válido (2 a 32 letras). Pode usar espaço ou hífen entre nomes.'});
+  }
+  if(last.length<2||last.length>40||!validName.test(last)){
+    return json(400,{error:'Digite um sobrenome válido (2 a 40 letras). Pode usar espaço, apóstrofo ou hífen.'});
+  }
+
+  const rpName=first+' '+last;
+  const rpNameLower=rpName.toLocaleLowerCase('pt-BR');
+
+  // Se esta conta já possui perfil, devolve o cadastro existente em vez de tentar duplicá-lo.
+  const existing=await supabase('portal_profiles?discord_id=eq.'+encodeURIComponent(user.sub)+'&select=first_name,last_name,rp_name&limit=1');
+  if(!existing.ok) return json(500,{error:'Não foi possível verificar seu cadastro. Confira a conexão do Supabase.'});
+  const existingRows=await existing.json();
+  if(existingRows.length) return json(200,{ok:true,profile:existingRows[0],alreadyRegistered:true});
+
+  const save=await supabase('portal_profiles','POST',{
+    discord_id:user.sub,
+    discord_username:user.username||'Discord',
+    first_name:first,
+    last_name:last,
+    rp_name:rpName,
+    rp_name_lower:rpNameLower
+  });
+
+  if(!save.ok){
+    const details=await save.text();
+    if(save.status===409||details.includes('23505')||details.includes('unique constraint')){
+      return json(409,{error:'Este nome RP já está em uso ou sua conta já possui cadastro. Tente outro nome.'});
+    }
+    return json(500,{error:'O Supabase recusou o cadastro do nome RP. Verifique se a tabela portal_profiles foi criada com as colunas do arquivo supabase_schema.sql.'});
+  }
+
+  const rows=await save.json().catch(()=>[]);
+  const saved=rows[0]||{first_name:first,last_name:last,rp_name:rpName};
+  return json(201,{ok:true,profile:saved});
+};

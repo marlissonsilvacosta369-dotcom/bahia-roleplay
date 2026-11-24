@@ -61,9 +61,57 @@ async function submitPortal(type,form){if(!currentUser){openLogin();return;}if(!
 [['denunciaForm','denuncia'],['revisaoForm','revisao'],['idForm','id']].forEach(([formId,type])=>{const form=document.getElementById(formId);if(!form)return;form.addEventListener('submit',e=>{e.preventDefault();submitPortal(type,form);});});
 async function loadAdmin(){const target=document.getElementById('adminContent');if(!target)return;target.innerHTML='<div class="notice">Carregando solicitações...</div>';try{const data=await api('admin');const rows=data.records||[];target.innerHTML=rows.length?rows.map(r=>`<article class="doc-card admin-record"><span class="tag">${escapeHTML(r.type)} • ${escapeHTML(r.status)}</span><h3>${escapeHTML(r.rp_name||r.identificacao||r.discord_username||'Solicitação')}</h3><p>${escapeHTML(r.description||'')}</p><p><b>ID solicitado:</b> ${escapeHTML(r.player_id||'—')} <b>Alvo:</b> ${escapeHTML(r.target||'—')}</p><p><b>Discord:</b> ${escapeHTML(r.discord_username||r.discord_id||'')}</p>${r.proof_url?`<a href="${escapeHTML(r.proof_url)}" target="_blank" rel="noopener">Abrir prova ↗</a>`:''}<div class="admin-actions"><select data-status="${escapeHTML(r.id)}"><option ${r.status==='Aguardando liberação automática'?'selected':''}>Aguardando liberação automática</option><option ${r.status==='Recebido'?'selected':''}>Recebido</option><option ${r.status==='Em análise'?'selected':''}>Em análise</option><option ${r.status==='Aprovado'?'selected':''}>Aprovado</option><option ${r.status==='Negado'?'selected':''}>Negado</option><option ${r.status==='Concluído'?'selected':''}>Concluído</option><option ${r.status==='Falha na liberação MTA'?'selected':''}>Falha na liberação MTA</option></select><input data-note="${escapeHTML(r.id)}" placeholder="Nota da staff" value="${escapeHTML(r.staff_note||'')}"><button class="button button-blue" data-save="${escapeHTML(r.id)}">Salvar</button></div></article>`).join(''):'<div class="notice">Nenhuma solicitação registrada ainda.</div>';target.querySelectorAll('[data-save]').forEach(btn=>btn.onclick=async()=>{const id=btn.dataset.save;const status=target.querySelector(`[data-status="${CSS.escape(id)}"]`).value;const note=target.querySelector(`[data-note="${CSS.escape(id)}"]`).value;try{await api('admin',{method:'PATCH',body:JSON.stringify({id,status,staff_note:note})});loadAdmin();}catch(e){alert(e.message);}});}catch(e){target.innerHTML=`<div class="notice">${escapeHTML(e.message)}. Confirme se sua conta Discord está na lista de administradores configurada no backend.</div>`;}}
 refreshAuth().then(loadMyRequests);async function loadMyRequests(){if(!currentUser)return;const target=document.querySelector('#page-minha-area .user-profile');if(!target)return;try{const d=await api('my-requests');let box=document.getElementById('myRequestsHistory');if(!box){box=document.createElement('div');box.id='myRequestsHistory';box.className='saved-list';target.after(box);}box.innerHTML='<h3>Meu histórico</h3>'+(d.records.length?d.records.map(r=>`<article class=\"saved-card\"><b>${escapeHTML(r.type)} — ${escapeHTML(r.status)}</b><p>${escapeHTML(r.rp_name||r.description||r.identificacao||'Registro')}</p><small>${new Date(r.created_at).toLocaleString('pt-BR')}</small>${r.staff_note?`<p>Resposta da staff: ${escapeHTML(r.staff_note)}</p>`:''}</article>`).join(''):'<p class=\"saved-empty\">Nenhuma solicitação vinculada à sua conta.</p>');}catch(e){console.error('Falha ao carregar histórico:',e);}}if(new URLSearchParams(location.search).has('auth')){const reason=new URLSearchParams(location.search).get('reason')||'unknown';const messages={server_config:'Configuração OAuth incompleta no servidor/Netlify (variáveis de ambiente).',discord_denied:'Login cancelado ou negado no Discord.',missing_code:'Discord não retornou o código de autorização.',missing_state:'Cookie de segurança não chegou. Confira domínio HTTPS e navegador.',state_mismatch:'Validação de segurança do login falhou. Tente novamente.',token_exchange_400:'Redirect URI, Client ID ou Client Secret não correspondem à aplicação Discord.',token_exchange_401:'Client Secret inválido ou aplicação Discord configurada incorretamente.',profile_401:'Token de login inválido ao consultar perfil Discord.',profile_403:'Discord negou acesso ao perfil.',server_token:'Erro de configuração ao trocar código.',server_profile:'Erro ao consultar perfil Discord.'};alert('Falha no login Discord: '+(messages[reason]||reason)+'\n\nConfira se o Redirect URI na Discord Developer Portal é exatamente igual a DISCORD_REDIRECT_URI na Netlify.');}if(new URLSearchParams(location.search).has('login'))history.replaceState(null,'',location.pathname+location.hash);
+
+// Conteúdo de regulamentos editável pela administração e publicado para todos.
+let publishedRules=[];
+async function loadPublishedRules(){
+  const grid=document.getElementById('publishedRules');
+  if(!grid)return;
+  try{
+    const data=await api('rules');
+    publishedRules=data.rules||[];
+    grid.innerHTML=publishedRules.map((r,i)=>'<article class="doc-card"><span class="doc-icon">▤</span><h3>'+escapeHTML(r.title)+'</h3><p>'+escapeHTML(r.content.slice(0,170))+(r.content.length>170?'…':'')+'</p><button class="text-button" type="button" data-rule-index="'+i+'">Ler regra ↗</button></article>').join('');
+    grid.querySelectorAll('[data-rule-index]').forEach(btn=>btn.addEventListener('click',()=>{
+      const r=publishedRules[Number(btn.dataset.ruleIndex)];
+      document.getElementById('modalTitle').textContent=r.title;
+      const p=modal.querySelector('.modal-panel p');
+      p.textContent=r.content;
+      modal.classList.add('show');
+    }));
+  }catch(e){console.error('Falha ao carregar regulamentos:',e);}
+}
+function setupRulesAdmin(){
+ const form=document.getElementById('rulesAdminForm');
+ if(!form)return;
+ const notice=document.getElementById('rulesAdminNotice');
+ const list=document.getElementById('rulesAdminList');
+ const reload=async()=>{
+   try{
+     const d=await api('rules');
+     list.innerHTML=(d.rules||[]).map(r=>'<article class="saved-card"><b>'+escapeHTML(r.title)+'</b><p>'+escapeHTML(r.content.slice(0,180))+'</p><small>Atualizado: '+new Date(r.updated_at).toLocaleString('pt-BR')+'</small></article>').join('')||'<p class="saved-empty">Nenhuma regra publicada ainda.</p>';
+   }catch(e){list.textContent=e.message;}
+ };
+ form.addEventListener('submit',async e=>{
+   e.preventDefault();
+   const b=form.querySelector('button[type=submit]');b.disabled=true;b.textContent='Salvando...';
+   const data=Object.fromEntries(new FormData(form).entries());
+   try{
+     await api('rules',{method:'POST',body:JSON.stringify(data)});
+     notice.textContent='Regra salva e publicada na seção Regulamentos.';
+     notice.classList.remove('error');
+     const password=data.password;form.reset();form.elements.password.value=password;
+     await reload();await loadPublishedRules();
+   }catch(err){notice.textContent='Não foi possível salvar: '+err.message;notice.classList.add('error');}
+   finally{b.disabled=false;b.textContent='Salvar regra';}
+ });
+ reload();
+}
+
 // Admin link is added only to accounts authorized by the backend.
+loadPublishedRules();
+setupRulesAdmin();
 // Navegação por link direto/refresh
-const initial=location.hash.replace("#","");if(initial&&document.getElementById("page-"+initial))showPage(initial);
+#("#","");if(initial&&document.getElementById("page-"+initial))showPage(initial);
 // Modal informativo de documentos
 const modal=document.getElementById("modal");
 document.querySelectorAll("[data-open]").forEach(btn=>btn.addEventListener("click",()=>{document.getElementById("modalTitle").textContent=btn.dataset.open;modal.classList.add("show");}));

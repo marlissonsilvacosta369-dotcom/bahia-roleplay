@@ -1,8 +1,8 @@
 const {getSession,json,readBody,supabase}=require('./_shared');
 
-const validName=/^[\\p{L}]+(?:[ '-][\\p{L}]+)*$/u;
+const validName=/^\p{L}+(?:[ '-]\p{L}+)*$/u;
 function cleanName(value){
-  return String(value||'').normalize('NFC').trim().replace(/\\s+/g,' ');
+  return String(value||'').normalize('NFC').trim().replace(/\s+/g,' ');
 }
 
 exports.handler=async(event)=>{
@@ -32,7 +32,6 @@ exports.handler=async(event)=>{
   const rpName=first+' '+last;
   const rpNameLower=rpName.toLocaleLowerCase('pt-BR');
 
-  // Se esta conta já possui perfil, devolve o cadastro existente em vez de tentar duplicá-lo.
   const existing=await supabase('portal_profiles?discord_id=eq.'+encodeURIComponent(user.sub)+'&select=first_name,last_name,rp_name&limit=1');
   if(!existing.ok) return json(500,{error:'Não foi possível verificar seu cadastro. Confira a conexão do Supabase.'});
   const existingRows=await existing.json();

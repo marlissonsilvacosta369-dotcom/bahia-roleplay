@@ -175,7 +175,17 @@
       </section>
       <section class="page subpage" id="page-admin"><div class="page-heading"><span class="eyebrow">STAFF • ACESSO RESTRITO</span><h1>Painel administrativo</h1><p>Gerencie denúncias, revisões e liberações de ID. Esta área só aparece para Discord IDs autorizados no backend.</p></div><div id="adminContent"><div class="notice">Faça login como administrador para carregar os registros.</div></div></section>
       <section class="page subpage" id="page-minha-area">
-        <div class="page-heading"><span class="eyebrow">PORTAL DO CIDADÃO</span><h1>Minha área</h1><p>Entre com sua conta Discord para que seus dados, denúncias, revisões e solicitações possam ficar vinculados ao seu perfil.</p><button class="button button-blue" id="loginArea" type="button">♙ Entrar com Discord</button></div><div class="notice">Login Discord ainda depende da configuração OAuth no painel de desenvolvedor e de um backend seguro. Não pediremos sua senha do Discord dentro deste site.</div><div class="doc-grid"><article class="doc-card"><span class="doc-icon">⚑</span><h3>Minhas denúncias</h3><p>Consultar registros e andamento.</p></article><article class="doc-card"><span class="doc-icon">↻</span><h3>Minhas revisões</h3><p>Acompanhar pedidos de reavaliação.</p></article><article class="doc-card"><span class="doc-icon">▣</span><h3>Meus IDs</h3><p>Consultar solicitações de liberação.</p></article></div></section>
+        <div class="page-heading"><span class="eyebrow">PORTAL DO CIDADÃO</span><h1>Minha área</h1><p>Gerencie seu perfil, acompanhe solicitações e consulte o histórico vinculado à sua conta Discord.</p><button class="button button-blue" id="loginArea" type="button">♙ Entrar com Discord</button></div>
+        <div class="notice" id="rpProfileNotice">Entre com Discord para acessar seu perfil e registrar seu nome RP.</div>
+        <form class="portal-form" id="rpProfileForm" style="display:none">
+          <h3>Cadastro do personagem</h3>
+          <p>Registre um nome e sobrenome RP. O nome ficará vinculado à sua conta Discord.</p>
+          <label>Primeiro nome<input name="firstName" required minlength="2" maxlength="24" autocomplete="given-name" placeholder="Ex.: João"></label>
+          <label>Sobrenome<input name="lastName" required minlength="2" maxlength="24" autocomplete="family-name" placeholder="Ex.: Silva"></label>
+          <button class="button button-blue" type="submit">Salvar nome RP</button>
+        </form>
+        <div class="doc-grid"><article class="doc-card"><span class="doc-icon">⚑</span><h3>Minhas denúncias</h3><p>Consultar registros e andamento.</p></article><article class="doc-card"><span class="doc-icon">↻</span><h3>Minhas revisões</h3><p>Acompanhar pedidos de reavaliação.</p></article><article class="doc-card"><span class="doc-icon">▣</span><h3>Meus IDs</h3><p>Consultar solicitações de liberação.</p></article></div>
+      </section>
 
       <footer class="footer"><div class="footer-brand"><span class="mini-br">BR</span><b>BAHIA ROLEPLAY</b></div><span>© 2025 Bahia Roleplay. Todos os direitos reservados.</span><span class="footer-motto">RESPEITO · ROLEPLAY · DIVERSÃO</span><div class="socials"><a href="#" aria-label="Discord" id="discordFoot">◉</a><a href="#" aria-label="YouTube">▶</a><a href="#" aria-label="Instagram">◎</a></div></footer>
     </main>

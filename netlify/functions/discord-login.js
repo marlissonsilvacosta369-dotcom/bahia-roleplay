@@ -21,9 +21,11 @@ exports.handler=async()=>{
       body:''
     };
   }catch(error){
+    const missing = String(error && error.message || '').match(/Missing environment variable: ([A-Z0-9_]+)/);
+    const reason = missing ? 'missing_env_' + missing[1] : 'server_config';
     return {
       statusCode:302,
-      headers:{location:'/?auth=failed&reason=server_config','cache-control':'no-store'},
+      headers:{location:'/?auth=failed&reason=' + encodeURIComponent(reason),'cache-control':'no-store'},
       body:''
     };
   }

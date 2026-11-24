@@ -1,0 +1,2 @@
+const {getSession,json,supabase}=require('./_shared');
+exports.handler=async(event)=>{const u=getSession(event);if(!u)return json(401,{error:'Login required'});const r=await supabase('portal_requests?discord_id=eq.'+encodeURIComponent(u.sub)+'&select=id,type,status,rp_name,player_id,identificacao,target,created_at,staff_note,description&order=created_at.desc&limit=100');if(!r.ok)return json(500,{error:'Database error'});return json(200,{records:await r.json()});};

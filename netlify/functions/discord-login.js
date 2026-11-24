@@ -1,0 +1,2 @@
+const {env,makeOAuthState}=require('./_shared');
+exports.handler=async()=>{try{const redirect=env('DISCORD_REDIRECT_URI');const state=makeOAuthState();const params=new URLSearchParams({client_id:env('DISCORD_CLIENT_ID'),redirect_uri:redirect,response_type:'code',scope:'identify',state});return {statusCode:302,headers:{location:'https://discord.com/oauth2/authorize?'+params.toString(),'cache-control':'no-store'},body:''};}catch(e){return {statusCode:302,headers:{location:'/?auth=failed&reason=server_config','cache-control':'no-store'},body:''}}};

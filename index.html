@@ -175,9 +175,24 @@
         <form class="portal-form" id="idForm"><label>ID inicial do jogador<input name="id" required inputmode="numeric" pattern="[0-9]+" placeholder="ID que aparece ao entrar pela primeira vez"></label><label>Observação (opcional)<textarea name="descricao" rows="3" placeholder="Informação adicional"></textarea></label><button class="button button-blue" type="submit">Solicitar liberação</button></form><div class="saved-list" id="idsSaved"></div>
       </section>
       <section class="page subpage" id="page-admin"><div class="page-heading"><span class="eyebrow">STAFF • ACESSO RESTRITO</span><h1>Painel administrativo</h1><p>Gerencie denúncias, revisões e liberações de ID. Esta área só aparece para Discord IDs autorizados no backend.</p></div><div id="adminContent"><div class="notice">Faça login como administrador para carregar os registros.</div></div>
+        <div class="page-heading" style="margin-top:34px"><span class="eyebrow">CONFIGURAÇÕES</span><h2>Ativar ou desativar abas</h2><p>As alterações ficam salvas no banco e valem para todos os visitantes.</p></div>
+        <div id="adminTabs" class="portal-form"><div class="notice">Carregando configurações...</div></div>
+        <div class="page-heading" style="margin-top:34px"><span class="eyebrow">MANUTENÇÃO</span><h2>Limpar banco de dados</h2><p>Selecione exatamente quais registros deseja apagar. A ação é permanente e exige a senha administrativa.</p></div>
+        <form id="adminClearForm" class="portal-form">
+          <label><input type="checkbox" name="requests_id"> Solicitações de liberação de ID</label>
+          <label><input type="checkbox" name="requests_denuncia"> Denúncias</label>
+          <label><input type="checkbox" name="requests_revisao"> Revisões</label>
+          <label><input type="checkbox" name="profiles"> Cadastros de nomes RP</label>
+          <label><input type="checkbox" name="rules"> Regras publicadas</label>
+          <label>Senha administrativa<input name="password" type="password" required autocomplete="current-password"></label>
+          <label>Digite LIMPAR para confirmar<input name="confirmation" required autocomplete="off"></label>
+          <button class="button button-blue" type="submit">Limpar itens selecionados</button>
+          <p id="adminClearNotice" class="notice" style="margin:0"></p>
+        </form>
         <div class="page-heading" style="margin-top:34px"><span class="eyebrow">CONTEÚDO DO SITE</span><h2>Editar regras da cidade</h2><p>Digite a senha administrativa para liberar a edição. O conteúdo salvo aparecerá na seção Regulamentos.</p></div>
         <form class="portal-form" id="rulesAdminForm">
           <label>Senha de edição<input name="password" type="password" required autocomplete="current-password" placeholder="Senha administrativa"></label>
+          <label>Publicar em<select name="section" required><option value="regulamentos">Regulamentos</option><option value="codigo">Código Penal</option><option value="organizacoes">Organizações</option><option value="investigacoes">Investigações</option><option value="novidades">Novidades</option></select></label>
           <label>Título da regra<input name="title" required maxlength="100" placeholder="Ex.: Regras Gerais"></label>
           <label>Conteúdo<textarea name="content" required rows="9" maxlength="20000" placeholder="Escreva aqui as regras oficiais da cidade..."></textarea></label>
           <button class="button button-blue" type="submit">Salvar regra</button>

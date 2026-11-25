@@ -26,7 +26,7 @@ exports.handler=async(event)=>{
     const content=String(body.content||'').trim().slice(0,20000);
     if(!title||!content)return json(400,{error:'Informe o título e o conteúdo da regra.'});
     try{
-      const lookup=await supabase('city_rules?title=eq.'+encodeURIComponent(title)++'&section=eq.'+encodeURIComponent(section)+'&select=id&limit=1');
+      const lookup=await supabase('city_rules?title=eq.'+encodeURIComponent(title)+'&section=eq.'+encodeURIComponent(section)+'&select=id&limit=1');
       if(!lookup.ok)return json(500,{error:'Não foi possível consultar as regras.'});
       const rows=await lookup.json();
       const payload={title,content,section,updated_at:new Date().toISOString()};

@@ -10,7 +10,7 @@ function sameSecret(a,b){
 exports.handler=async(event)=>{
   if(event.httpMethod==='GET'){
     try{
-      const r=await supabase('city_rules?select=id,title,content,updated_at&order=updated_at.desc');
+      const r=await supabase('city_rules?select=id,title,content,section,updated_at&order=updated_at.desc');
       if(!r.ok)return json(500,{error:'Não foi possível carregar as regras.'});
       return json(200,{rules:await r.json()});
     }catch(e){return json(500,{error:'Configuração do banco indisponível.'});}
@@ -21,13 +21,15 @@ exports.handler=async(event)=>{
     if(!sameSecret(body.password,expected))
       return json(403,{error:'Senha administrativa incorreta ou não configurada.'});
     const title=String(body.title||'').trim().slice(0,100);
+    const section=String(body.section||'regulamentos');
+    if(!['regulamentos','codigo','organizacoes','investigacoes','novidades'].includes(section))return json(400,{error:'Seção inválida.'});
     const content=String(body.content||'').trim().slice(0,20000);
     if(!title||!content)return json(400,{error:'Informe o título e o conteúdo da regra.'});
     try{
-      const lookup=await supabase('city_rules?title=eq.'+encodeURIComponent(title)+'&select=id&limit=1');
+      const lookup=await supabase('city_rules?title=eq.'+encodeURIComponent(title)++'&section=eq.'+encodeURIComponent(section)+'&select=id&limit=1');
       if(!lookup.ok)return json(500,{error:'Não foi possível consultar as regras.'});
       const rows=await lookup.json();
-      const payload={title,content,updated_at:new Date().toISOString()};
+      const payload={title,content,section,updated_at:new Date().toISOString()};
       const saved=rows[0]
         ? await supabase('city_rules?id=eq.'+encodeURIComponent(rows[0].id),'PATCH',payload)
         : await supabase('city_rules','POST',payload);

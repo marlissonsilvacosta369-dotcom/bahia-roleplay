@@ -203,7 +203,9 @@
           <label>Categoria<input name="category" required maxlength="50" placeholder="Ex.: VIP, Veículo, Imóvel, Extra"></label>
           <label>Descrição<textarea name="description" rows="3" maxlength="1000" placeholder="Benefícios e detalhes do produto"></textarea></label>
           <label>Valor (R$)<input name="price" type="number" min="0" step="0.01" required placeholder="Ex.: 29.90"></label>
-          <label>ID do cargo Discord a entregar<input name="discord_role_id" inputmode="numeric" placeholder="ID do cargo no servidor Discord"></label>
+          <label>Foto do produto<input name="product_image" id="productImageFile" type="file" accept="image/png,image/jpeg,image/webp"><small>Envie JPG, PNG ou WEBP (máximo 2 MB).</small></label>
+          <input type="hidden" name="image_url">
+          <label>ID do cargo Discord a entregar<input name="discord_role_id" inputmode="numeric" maxlength="100" placeholder="ID do cargo no servidor Discord (máx. 100 caracteres)"></label>
           <label><input type="checkbox" name="active" checked> Produto ativo na loja</label>
           <div class="admin-actions"><button class="button button-blue" type="submit">Salvar produto</button><button class="button button-outline" type="button" id="productFormClear">Limpar formulário</button></div>
           <p id="productAdminNotice" class="notice" style="margin:0"></p>

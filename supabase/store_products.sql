@@ -11,3 +11,12 @@ create table if not exists public.store_products (
  updated_at timestamptz not null default now()
 );
 alter table public.store_products enable row level security;
+
+
+-- Campo para a imagem pública de cada produto.
+alter table public.store_products add column if not exists image_url text;
+
+-- Bucket público para fotos da loja (o envio é feito somente pelo backend).
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('store-products', 'store-products', true, 2097152, array['image/jpeg','image/png','image/webp'])
+on conflict (id) do update set public = true, file_size_limit = 2097152, allowed_mime_types = array['image/jpeg','image/png','image/webp'];

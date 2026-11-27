@@ -53,7 +53,7 @@ document.getElementById("discordOAuth")?.addEventListener("click",()=>window.loc
 // Portal autenticado: Discord OAuth, solicitações persistidas e painel staff.
 async function api(path,options={}){const r=await fetch('/.netlify/functions/'+path,{credentials:'same-origin',headers:{'content-type':'application/json',...(options.headers||{})},...options});let d={};try{d=await r.json()}catch{}if(!r.ok)throw new Error(d.error||'Falha de API');return d;}
 let currentUser=null;
-function setLoggedUI(user){currentUser=user;const top=document.getElementById('loginTop');if(top)top.textContent=user?('♙ '+(user.displayName||user.username)):'♙ Login';const loginBtn=document.getElementById('loginArea');if(loginBtn)loginBtn.textContent=user?'Conta conectada: '+(user.displayName||user.username):'♙ Entrar com Discord';if(user?.isAdmin&&!document.querySelector('[data-page="admin"]')){const nav=document.querySelector('.nav');const a=document.createElement('a');a.className='nav-link';a.href='#admin';a.dataset.page='admin';a.innerHTML='<span>⚙</span> Administração';a.addEventListener('click',e=>{e.preventDefault();showPage('admin');history.replaceState(null,'','#admin');loadAdmin();loadAdminControls();});nav.appendChild(a);navLinks.push(a);}if(user){const p=document.querySelector('#page-minha-area .page-heading');if(p){let profile=p.querySelector('.user-profile');if(!profile){profile=document.createElement('div');profile.className='user-profile notice';p.appendChild(profile);}profile.innerHTML=`<strong>Conectado: ${escapeHTML(user.displayName||user.username)}</strong><small>Discord: ${escapeHTML(user.username)} • ID ${escapeHTML(user.discordId)}</small><button class="button button-outline" id="logoutBtn" type="button">Sair</button>`;profile.querySelector('#logoutBtn').onclick=async()=>{await api('logout',{method:'POST'});location.reload();};}}}
+function setLoggedUI(user){currentUser=user;const top=document.getElementById('loginTop');if(top)top.textContent=user?('♙ '+(user.displayName||user.username)):'♙ Login';const loginBtn=document.getElementById('loginArea');if(loginBtn)loginBtn.textContent=user?'Conta conectada: '+(user.displayName||user.username):'♙ Entrar com Discord';if(user?.isAdmin&&!document.querySelector('[data-page="admin"]')){const nav=document.querySelector('.nav');const a=document.createElement('a');a.className='nav-link';a.href='#admin';a.dataset.page='admin';a.innerHTML='<span>⚙</span> Administração';a.addEventListener('click',e=>{e.preventDefault();showPage('admin');history.replaceState(null,'','#admin');loadAdmin();loadAdminControls();loadSiteTextAdmin();});nav.appendChild(a);navLinks.push(a);}if(user){const p=document.querySelector('#page-minha-area .page-heading');if(p){let profile=p.querySelector('.user-profile');if(!profile){profile=document.createElement('div');profile.className='user-profile notice';p.appendChild(profile);}profile.innerHTML=`<strong>Conectado: ${escapeHTML(user.displayName||user.username)}</strong><small>Discord: ${escapeHTML(user.username)} • ID ${escapeHTML(user.discordId)}</small><button class="button button-outline" id="logoutBtn" type="button">Sair</button>`;profile.querySelector('#logoutBtn').onclick=async()=>{await api('logout',{method:'POST'});location.reload();};}}}
 function escapeHTML(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
 async function refreshAuth(){try{const d=await api('me');if(d.authenticated){setLoggedUI(d.user);showRPProfile(d.user);}else{const n=document.getElementById('rpProfileNotice');if(n)n.textContent='Entre com Discord para registrar seu nome RP e acessar os serviços do portal.';const f=document.getElementById('rpProfileForm');if(f)f.style.display='none';const id=document.getElementById('idForm');if(id)id.style.display='none';}}catch(e){console.error('Falha ao verificar sessão:',e);}}
 function showRPProfile(user){const form=document.getElementById('rpProfileForm'),notice=document.getElementById('rpProfileNotice'),idForm=document.getElementById('idForm');if(!form||!notice)return;if(user.rpComplete&&user.rpProfile){form.style.display='none';notice.innerHTML='Nome RP registrado: <strong>'+escapeHTML(user.rpProfile.rp_name)+'</strong>. Esse nome é único e fica vinculado à sua conta Discord.';if(idForm)idForm.style.display='block';return;}form.style.display='block';if(idForm)idForm.style.display='none';notice.textContent='Seu primeiro acesso exige registrar um nome RP válido antes de enviar denúncias, revisões ou pedidos de ID.';form.onsubmit=async e=>{e.preventDefault();const submit=form.querySelector('button[type=submit]');const data=Object.fromEntries(new FormData(form).entries());if(submit){submit.disabled=true;submit.textContent='Salvando...';}notice.textContent='Validando e salvando seu nome RP...';try{const r=await api('profile',{method:'POST',body:JSON.stringify(data)});notice.innerHTML='Cadastro RP concluído: <strong>'+escapeHTML(r.profile.rp_name)+'</strong>';form.style.display='none';if(idForm)idForm.style.display='block';currentUser.rpComplete=true;currentUser.rpProfile=r.profile;await loadMyRequests();}catch(err){notice.textContent='Não foi possível salvar: '+err.message;notice.classList.add('error');}finally{if(submit){submit.disabled=false;submit.textContent='Salvar nome RP';}}};}
@@ -68,7 +68,7 @@ async function loadPublishedRules(){
  const dataGrid=document.getElementById('publishedRules');if(!dataGrid)return;
  try{
   const data=await api('rules');publishedRules=data.rules||[];
-  const sections=['regulamentos','codigo','organizacoes','investigacoes','novidades'];
+  const sections=['regulamentos','codigo','organizacoes','investigacoes','vendas','novidades','discord','suporte','denuncias','revisoes','liberacao-id','minha-area'];
   for(const section of sections){
    let grid=section==='regulamentos'?dataGrid:document.getElementById('publishedRules-'+section);
    if(section!=='regulamentos'&&!grid){const page=document.getElementById('page-'+section);if(page){grid=document.createElement('div');grid.id='publishedRules-'+section;grid.className='doc-grid';const heading=page.querySelector('.page-heading');if(heading)heading.after(grid);else page.prepend(grid);}}
@@ -82,12 +82,65 @@ function setupRulesAdmin(){
  form.addEventListener('submit',async e=>{e.preventDefault();const b=form.querySelector('button[type=submit]');b.disabled=true;b.textContent='Salvando...';const data=Object.fromEntries(new FormData(form).entries());try{await api('rules',{method:'POST',body:JSON.stringify(data)});notice.textContent='Regra publicada na seção escolhida.';notice.classList.remove('error');const password=data.password;form.reset();form.elements.password.value=password;await reload();await loadPublishedRules();}catch(err){notice.textContent='Não foi possível salvar: '+err.message;notice.classList.add('error');}finally{b.disabled=false;b.textContent='Salvar regra';}});reload();
 }
 const tabLabels={regulamentos:'Regulamentos',codigo:'Código Penal',organizacoes:'Organizações',investigacoes:'Investigações',vendas:'Área de Vendas',novidades:'Novidades',discord:'Discord',suporte:'Suporte',denuncias:'Denúncias',revisoes:'Revisões','liberacao-id':'Liberação de ID','minha-area':'Minha área'};
-async function applyTabSettings(){try{const d=await api('site-settings');const tabs=d.tabs||{};Object.entries(tabLabels).forEach(([slug])=>{if(typeof tabs[slug]!=='boolean')return;document.querySelectorAll('[data-page="'+slug+'"]').forEach(el=>el.style.display=tabs[slug]?'':'none');const page=document.getElementById('page-'+slug);if(page)page.style.display=tabs[slug]?'':'none';});const active=location.hash.slice(1);if(active&&tabs[active]===false)showPage('inicio');}catch(e){console.warn('Não foi possível carregar visibilidade das abas:',e);}}
+async function applyTabSettings(){try{const d=await api('site-settings');const tabs=d.tabs||{};applySiteText(d.content||{});Object.entries(tabLabels).forEach(([slug])=>{if(typeof tabs[slug]!=='boolean')return;document.querySelectorAll('[data-page="'+slug+'"]').forEach(el=>el.style.display=tabs[slug]?'':'none');const page=document.getElementById('page-'+slug);if(page)page.style.display=tabs[slug]?'':'none';});const active=location.hash.slice(1);if(active&&tabs[active]===false)showPage('inicio');}catch(e){console.warn('Não foi possível carregar visibilidade das abas:',e);}}
 async function loadAdminControls(){
  const tabsBox=document.getElementById('adminTabs'),clearForm=document.getElementById('adminClearForm');if(!tabsBox||tabsBox.dataset.ready)return;tabsBox.dataset.ready='1';
  try{const d=await api('site-settings');const tabs=d.tabs||{};tabsBox.innerHTML='<label>Senha administrativa<input id="tabsAdminPassword" type="password" autocomplete="current-password" required></label>'+Object.entries(tabLabels).map(([slug,label])=>'<label><input type="checkbox" data-tab="'+slug+'" '+(tabs[slug]!==false?'checked':'')+'> '+label+'</label>').join('')+'<button class="button button-blue" id="saveTabsButton" type="button">Salvar abas</button><p id="tabsNotice" class="notice"></p>';document.getElementById('saveTabsButton').onclick=async()=>{const password=document.getElementById('tabsAdminPassword').value;const values=Object.fromEntries([...tabsBox.querySelectorAll('[data-tab]')].map(x=>[x.dataset.tab,x.checked]));const n=document.getElementById('tabsNotice');try{await api('admin',{method:'POST',body:JSON.stringify({action:'tabs',password,tabs:values})});n.textContent='Abas atualizadas com sucesso.';await applyTabSettings();}catch(e){n.textContent=e.message;}};}catch(e){tabsBox.textContent=e.message;}
  if(clearForm&&!clearForm.dataset.ready){clearForm.dataset.ready='1';clearForm.addEventListener('submit',async e=>{e.preventDefault();const data=Object.fromEntries(new FormData(clearForm).entries());const selected={requests_id:!!clearForm.elements.requests_id.checked,requests_denuncia:!!clearForm.elements.requests_denuncia.checked,requests_revisao:!!clearForm.elements.requests_revisao.checked,profiles:!!clearForm.elements.profiles.checked,rules:!!clearForm.elements.rules.checked};const notice=document.getElementById('adminClearNotice');if(!Object.values(selected).some(Boolean)){notice.textContent='Selecione ao menos uma categoria.';return;}if(!confirm('A exclusão é permanente. Deseja continuar?'))return;try{const result=await api('admin',{method:'POST',body:JSON.stringify({action:'clear',password:data.password,confirmation:data.confirmation,selected})});notice.textContent='Excluído: '+result.deleted.join(', ');clearForm.reset();await loadAdmin();await loadPublishedRules();}catch(err){notice.textContent=err.message;}});}
 }
+
+const siteTextFields={
+ brand_name:'Nome da marca (lateral)',
+ hero_title:'Título principal da página inicial',
+ hero_description:'Descrição da página inicial',
+ nav_regulamentos:'Nome da aba: Regulamentos',
+ nav_codigo:'Nome da aba: Código Penal',
+ nav_organizacoes:'Nome da aba: Organizações',
+ nav_investigacoes:'Nome da aba: Investigações',
+ nav_vendas:'Nome da aba: Área de Vendas',
+ nav_discord:'Nome da aba: Discord',
+ nav_suporte:'Nome da aba: Suporte',
+ nav_denuncias:'Nome da aba: Denúncias',
+ nav_revisoes:'Nome da aba: Revisões',
+ nav_liberacao-id:'Nome da aba: Liberação de ID',
+ nav_minha-area:'Nome da aba: Minha área',
+ page_regulamentos_title:'Título da página: Regulamentos',
+ page_codigo_title:'Título da página: Código Penal',
+ page_organizacoes_title:'Título da página: Organizações',
+ page_investigacoes_title:'Título da página: Investigações',
+ page_vendas_title:'Título da página: Área de Vendas',
+ page_novidades_title:'Título da página: Novidades',
+ page_discord_title:'Título da página: Discord',
+ page_suporte_title:'Título da página: Suporte',
+ page_denuncias_title:'Título da página: Denúncias',
+ page_revisoes_title:'Título da página: Revisões',
+ page_liberacao-id_title:'Título da página: Solicitar liberação de ID',
+ page_minha-area_title:'Título da página: Minha área'
+};
+function applySiteText(content){
+ Object.entries(content||{}).forEach(([key,value])=>{
+  const el=document.querySelector('[data-site-key="'+CSS.escape(key)+'"]');
+  if(el&&typeof value==='string'){
+   if(key==='hero_title'&&value.includes('<em>'))return;
+   el.textContent=value;
+  }
+ });
+}
+async function loadSiteTextAdmin(){
+ const box=document.getElementById('adminSiteText');if(!box||box.dataset.ready)return;box.dataset.ready='1';
+ try{
+  const d=await api('site-settings');const current=d.content||{};
+  box.innerHTML='<label>Senha administrativa<input id="siteTextPassword" type="password" autocomplete="current-password" required placeholder="Senha administrativa"></label>'+Object.entries(siteTextFields).map(([key,label])=>'<label>'+escapeHTML(label)+'<input data-site-text="'+key+'" maxlength="180" value="'+escapeHTML(current[key]||'')+'" placeholder="'+escapeHTML(label)+'"></label>').join('')+'<button class="button button-blue" id="saveSiteText" type="button">Salvar nomes e títulos</button><p class="notice" id="siteTextNotice"></p>';
+  document.getElementById('saveSiteText').onclick=async()=>{
+   const password=document.getElementById('siteTextPassword').value;
+   const content=Object.fromEntries([...box.querySelectorAll('[data-site-text]')].map(el=>[el.dataset.siteText,el.value]));
+   const notice=document.getElementById('siteTextNotice');
+   try{await api('admin',{method:'POST',body:JSON.stringify({action:'content',password,content})});notice.textContent='Nomes e títulos atualizados para todos os visitantes.';applySiteText(content);}
+   catch(e){notice.textContent=e.message;}
+  };
+ }catch(e){box.innerHTML='<p class="notice">'+escapeHTML(e.message)+'</p>';}
+}
+
 // Admin link is added only to accounts authorized by the backend.
 loadPublishedRules();
 setupRulesAdmin();

@@ -22,7 +22,7 @@ exports.handler=async(event)=>{
       return json(403,{error:'Senha administrativa incorreta ou não configurada.'});
     const title=String(body.title||'').trim().slice(0,100);
     const section=String(body.section||'regulamentos');
-    if(!['regulamentos','codigo','organizacoes','investigacoes','novidades'].includes(section))return json(400,{error:'Seção inválida.'});
+    if(!['regulamentos','codigo','organizacoes','investigacoes','vendas','novidades','discord','suporte','denuncias','revisoes','liberacao-id','minha-area'].includes(section))return json(400,{error:'Seção inválida.'});
     const content=String(body.content||'').trim().slice(0,20000);
     if(!title||!content)return json(400,{error:'Informe o título e o conteúdo da regra.'});
     try{

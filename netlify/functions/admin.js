@@ -32,7 +32,7 @@ exports.handler=async(event)=>{
   if(b.action==='product_save'){
    const p=b.product||{};const name=String(p.name||'').trim().slice(0,100),category=String(p.category||'').trim().slice(0,50),description=String(p.description||'').trim().slice(0,1000),price=Number(p.price),role=String(p.discord_role_id||'').trim().slice(0,100),image_url=String(p.image_url||'').trim().slice(0,2000);
    if(!name||!category||!Number.isFinite(price)||price<0)return json(400,{error:'Informe nome, categoria e valor válido.'});
-   if(role&&!/^\\d{1,100}$/.test(role))return json(400,{error:'O ID do cargo deve conter apenas números e ter no máximo 100 caracteres.'});
+   if(role&&!/^[0-9]{1,100}$/.test(role))return json(400,{error:'O ID do cargo deve conter apenas números e ter no máximo 100 caracteres.'});
    const payload={name,category,description,price,discord_role_id:role||null,image_url:image_url||null,active:p.active===true,updated_at:new Date().toISOString()};
    let saved;if(p.id){saved=await supabase('store_products?id=eq.'+encodeURIComponent(p.id),'PATCH',payload);}else{payload.created_at=new Date().toISOString();saved=await supabase('store_products','POST',payload);}
    if(!saved.ok)return json(500,{error:'Não foi possível salvar o produto. Verifique se executou o SQL da loja no Supabase.'});return json(200,{ok:true});

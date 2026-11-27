@@ -28,3 +28,5 @@
 
 /* Admin panel and authenticated portal components */
 .admin-record{margin:0 0 14px}.admin-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.admin-actions select,.admin-actions input{background:#080e18;color:#dbe5f4;border:1px solid #263751;border-radius:8px;padding:10px;min-width:180px}.user-profile{display:grid;gap:8px}.user-profile small{color:#9cabc2}.user-profile button{justify-self:start}.saved-list{margin-top:18px}.saved-card{border:1px solid #263751;border-radius:10px;padding:14px;margin:10px 0;background:#0d1522}.saved-card small{color:#92a1b7}.admin-actions .button{cursor:pointer}
+
+.product-photo{display:block;width:100%;height:150px;object-fit:cover;background:#080d17}.product-admin-photo{width:110px;height:80px;object-fit:cover;border-radius:8px;margin-bottom:10px}.portal-form input[type=file]{padding:12px;background:#080e18;border:1px solid #263752;border-radius:9px;color:#dce5f5;width:100%}.portal-form label small{display:block;color:#8995aa;font-size:11px;margin-top:6px}

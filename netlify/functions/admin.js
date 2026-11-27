@@ -28,6 +28,18 @@ exports.handler=async(event)=>{
    return json(200,{ok:true});
   }
   if(b.action==='clear'){if(b.confirmation!=='LIMPAR')return json(400,{error:'Digite LIMPAR para confirmar.'});const s=b.selected||{},ops=[];if(s.requests_id)ops.push(['Solicitações de ID','portal_requests?type=eq.id']);if(s.requests_denuncia)ops.push(['Denúncias','portal_requests?type=eq.denuncia']);if(s.requests_revisao)ops.push(['Revisões','portal_requests?type=eq.revisao']);if(s.profiles)ops.push(['Cadastros RP','portal_profiles?discord_id=not.is.null']);if(s.rules)ops.push(['Regras','city_rules?id=not.is.null']);if(!ops.length)return json(400,{error:'Selecione pelo menos um tipo de registro.'});const deleted=[];for(const [label,path] of ops){const d=await supabase(path,'DELETE');if(!d.ok)return json(500,{error:'Falha ao apagar: '+label});deleted.push(label);}return json(200,{ok:true,deleted});}
+
+  if(b.action==='product_save'){
+   const p=b.product||{};const name=String(p.name||'').trim().slice(0,100),category=String(p.category||'').trim().slice(0,50),description=String(p.description||'').trim().slice(0,1000),price=Number(p.price),role=String(p.discord_role_id||'').trim();
+   if(!name||!category||!Number.isFinite(price)||price<0)return json(400,{error:'Informe nome, categoria e valor válido.'});
+   if(role&&!/^\\d{17,20}$/.test(role))return json(400,{error:'O ID do cargo Discord deve conter apenas 17 a 20 números.'});
+   const payload={name,category,description,price,discord_role_id:role||null,active:p.active===true,updated_at:new Date().toISOString()};
+   let saved;if(p.id){saved=await supabase('store_products?id=eq.'+encodeURIComponent(p.id),'PATCH',payload);}else{payload.created_at=new Date().toISOString();saved=await supabase('store_products','POST',payload);}
+   if(!saved.ok)return json(500,{error:'Não foi possível salvar o produto. Verifique se executou o SQL da loja no Supabase.'});return json(200,{ok:true});
+  }
+  if(b.action==='product_delete'){
+   if(!b.id)return json(400,{error:'Produto inválido.'});const d=await supabase('store_products?id=eq.'+encodeURIComponent(b.id),'DELETE');if(!d.ok)return json(500,{error:'Não foi possível excluir o produto.'});return json(200,{ok:true});
+  }
   return json(400,{error:'Ação administrativa inválida'});
  }
  return json(405,{error:'Method not allowed'});

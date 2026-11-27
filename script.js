@@ -102,8 +102,8 @@ const siteTextFields={
  nav_suporte:'Nome da aba: Suporte',
  nav_denuncias:'Nome da aba: Denúncias',
  nav_revisoes:'Nome da aba: Revisões',
- nav_liberacao-id:'Nome da aba: Liberação de ID',
- nav_minha-area:'Nome da aba: Minha área',
+ 'nav_liberacao-id':'Nome da aba: Liberação de ID',
+ 'nav_minha-area':'Nome da aba: Minha área',
  page_regulamentos_title:'Título da página: Regulamentos',
  page_codigo_title:'Título da página: Código Penal',
  page_organizacoes_title:'Título da página: Organizações',
@@ -114,8 +114,8 @@ const siteTextFields={
  page_suporte_title:'Título da página: Suporte',
  page_denuncias_title:'Título da página: Denúncias',
  page_revisoes_title:'Título da página: Revisões',
- page_liberacao-id_title:'Título da página: Solicitar liberação de ID',
- page_minha-area_title:'Título da página: Minha área'
+ 'page_liberacao-id_title':'Título da página: Solicitar liberação de ID',
+ 'page_minha-area_title':'Título da página: Minha área'
 };
 function applySiteText(content){
  Object.entries(content||{}).forEach(([key,value])=>{
